@@ -223,6 +223,7 @@
         .days-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
+            grid-template-rows: repeat(6, 1fr);
             gap: 8px;
         }
         
@@ -840,11 +841,13 @@
             
             // 下月日期
             const remainingCells = 42 - (startingDay + daysInMonth);
-            for (let day = 1; day <= remainingCells; day++) {
-                const dayDiv = document.createElement('div');
-                dayDiv.className = 'day-cell other-month';
-                dayDiv.innerHTML = `<span class="day-number">${day}</span>`;
-                daysGrid.appendChild(dayDiv);
+            if (remainingCells > 0) {
+                for (let day = 1; day <= remainingCells; day++) {
+                    const dayDiv = document.createElement('div');
+                    dayDiv.className = 'day-cell other-month';
+                    dayDiv.innerHTML = `<span class="day-number">${day}</span>`;
+                    daysGrid.appendChild(dayDiv);
+                }
             }
             
             // 更新本月假日列表
