@@ -1,0 +1,889 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>金融日历 2026 - 多国银行假日</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+        }
+        
+        .header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+        
+        /* 今日状态卡片 - 置顶 */
+        .today-status-top {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        
+        .today-status-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .today-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .today-info h2 {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 4px;
+            font-weight: normal;
+        }
+        
+        .today-info .date {
+            font-size: 1.5rem;
+            color: #1a1a1a;
+            font-weight: 700;
+        }
+        
+        /* 三个地区状态并排 */
+        .regions-status-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+        
+        .region-status-card {
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            border: 2px solid transparent;
+        }
+        
+        .region-status-card.can {
+            background: linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%);
+            border-color: #52c41a;
+        }
+        
+        .region-status-card.cannot {
+            background: linear-gradient(135deg, #fff2f0 0%, #ffccc7 100%);
+            border-color: #ff4d4f;
+        }
+        
+        .region-status-card .region-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        
+        .region-status-card.can .region-name {
+            color: #52c41a;
+        }
+        
+        .region-status-card.cannot .region-name {
+            color: #ff4d4f;
+        }
+        
+        .region-status-card .status-row {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+        
+        .region-status-card .status-item {
+            text-align: center;
+        }
+        
+        .region-status-card .status-item .label {
+            font-size: 0.75rem;
+            color: #666;
+            margin-bottom: 4px;
+        }
+        
+        .region-status-card .status-item .value {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        
+        .region-status-card.can .status-item .value {
+            color: #52c41a;
+        }
+        
+        .region-status-card.cannot .status-item .value {
+            color: #ff4d4f;
+        }
+        
+        .region-status-card .holiday-name {
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: #ff4d4f;
+            font-weight: 500;
+        }
+        
+        /* 日历区域 */
+        .calendar-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .calendar-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .month-year {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        
+        .nav-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+        }
+        
+        .nav-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.1);
+        }
+        
+        .calendar-body {
+            padding: 15px;
+        }
+        
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .weekday {
+            text-align: center;
+            font-weight: 600;
+            color: #666;
+            padding: 8px;
+            font-size: 0.85rem;
+        }
+        
+        .weekday.weekend {
+            color: #e74c3c;
+        }
+        
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+        
+        .day-cell {
+            aspect-ratio: 1;
+            border-radius: 12px;
+            padding: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            background: #fafafa;
+            min-height: 85px;
+        }
+        
+        .day-cell:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .day-cell.other-month {
+            opacity: 0.3;
+            background: transparent;
+        }
+        
+        .day-cell.today {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .day-cell.selected {
+            border-color: #1677ff;
+            box-shadow: 0 0 0 3px rgba(22, 119, 255, 0.2);
+        }
+        
+        .day-number {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+        
+        .day-cell.today .day-number {
+            color: white;
+        }
+        
+        /* 三个地区小圆点 */
+        .status-dot-single {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-top: auto;
+            margin-bottom: 6px;
+        }
+        
+        .status-dot-single.all-open {
+            background: #52c41a;
+        }
+        
+        .status-dot-single.some-closed {
+            background: #faad14;
+        }
+        
+        .status-dot-single.all-closed {
+            background: #ff4d4f;
+        }
+        
+        /* 假日标记 */
+        .holiday-badges {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            width: 100%;
+            align-items: center;
+            margin-top: 2px;
+        }
+        
+        .holiday-badge-mini {
+            font-size: 0.55rem;
+            padding: 1px 4px;
+            border-radius: 3px;
+            background: #fff2f0;
+            color: #ff4d4f;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+        
+        .holiday-badge-mini.weekend {
+            background: #f5f5f5;
+            color: #666;
+        }
+        
+        .day-cell.today .holiday-badge-mini {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        
+        .day-cell.weekend-day {
+            background: #f0f0f0;
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-top: 1px solid #e0e0e0;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        
+        .legend-dot.today {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .legend-dot.us { background: #1890ff; }
+        .legend-dot.sg { background: #52c41a; }
+        .legend-dot.hk { background: #722ed1; }
+        .legend-dot.all-open { background: #52c41a; }
+        .legend-dot.some-closed { background: #faad14; }
+        .legend-dot.all-closed { background: #ff4d4f; }
+        
+        /* 图例说明 */
+        .legend-section {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 12px 15px;
+            background: #fff;
+            border-top: 1px solid #f0f0f0;
+            flex-wrap: wrap;
+        }
+        
+        .legend-section .legend-item {
+            font-size: 0.75rem;
+        }
+        
+        .region-legend {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+        }
+        
+        .region-legend.us { background: #e6f7ff; color: #1890ff; }
+        .region-legend.sg { background: #f6ffed; color: #52c41a; }
+        .region-legend.hk { background: #f9f0ff; color: #722ed1; }
+        
+        /* 假日列表 */
+        .info-panel {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-top: 20px;
+            padding: 20px;
+        }
+        
+        .info-panel h3 {
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .holiday-list {
+            margin-top: 15px;
+        }
+        
+        .holiday-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .holiday-item:last-child {
+            border-bottom: none;
+        }
+        
+        .holiday-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .region-tag {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .region-tag.us { background: #e6f7ff; color: #1890ff; }
+        .region-tag.sg { background: #f6ffed; color: #52c41a; }
+        .region-tag.hk { background: #f9f0ff; color: #722ed1; }
+        .region-tag.weekend { background: #f5f5f5; color: #666; }
+        
+        .holiday-name-text {
+            font-size: 0.95rem;
+            color: #1a1a1a;
+        }
+        
+        .holiday-date-text {
+            text-align: right;
+        }
+        
+        .holiday-date-main {
+            font-size: 0.95rem;
+            color: #666;
+        }
+        
+        .holiday-weekday {
+            font-size: 0.8rem;
+            color: #999;
+        }
+        
+        @media (max-width: 768px) {
+            .regions-status-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .day-cell {
+                min-height: 70px;
+            }
+            
+            .holiday-badge-mini {
+                font-size: 0.5rem;
+            }
+            
+            .legend {
+                gap: 12px;
+            }
+            
+            .legend-item {
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏦 金融日历 2026</h1>
+            <p>美国 / 新加坡 / 香港 银行假日与打款状态</p>
+        </div>
+        
+        <!-- 今日状态卡片 - 置顶 -->
+        <div class="today-status-top">
+            <div class="today-status-header">
+                <div class="today-icon">📅</div>
+                <div class="today-info">
+                    <h2 id="statusTitle">今日状态</h2>
+                    <div class="date" id="todayDate">2026年3月3日 周二</div>
+                </div>
+            </div>
+            
+            <div class="regions-status-row" id="regionsStatus">
+                <!-- 动态生成三个地区状态 -->
+            </div>
+        </div>
+        
+        <!-- 日历区域 -->
+        <div class="calendar-card">
+            <div class="calendar-header">
+                <button class="nav-btn" onclick="changeMonth(-1)">‹</button>
+                <div class="month-year" id="monthYear">2026年3月</div>
+                <button class="nav-btn" onclick="changeMonth(1)">›</button>
+            </div>
+            
+            <div class="calendar-body">
+                <div class="weekdays">
+                    <div class="weekday weekend">日</div>
+                    <div class="weekday">一</div>
+                    <div class="weekday">二</div>
+                    <div class="weekday">三</div>
+                    <div class="weekday">四</div>
+                    <div class="weekday">五</div>
+                    <div class="weekday weekend">六</div>
+                </div>
+                <div class="days-grid" id="daysGrid"></div>
+            </div>
+            
+            <div class="legend-section">
+                <div class="legend-item">
+                    <div class="legend-dot today"></div>
+                    <span>今天</span>
+                </div>
+                <div class="legend-item">
+                    <span class="region-legend us">🇺🇸 美国</span>
+                </div>
+                <div class="legend-item">
+                    <span class="region-legend sg">🇸🇬 新加坡</span>
+                </div>
+                <div class="legend-item">
+                    <span class="region-legend hk">🇭🇰 香港</span>
+                </div>
+            </div>
+            
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-dot all-open"></div>
+                    <span>全部可打款</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot some-closed"></div>
+                    <span>部分可打款</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot all-closed"></div>
+                    <span>全部不可打款</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 本月假日列表 -->
+        <div class="info-panel">
+            <h3>📅 本月假日列表</h3>
+            <div class="holiday-list" id="monthHolidays"></div>
+        </div>
+    </div>
+
+    <script>
+        // 2026年假日数据
+        const holidaysData = {
+            us: {
+                name: '🇺🇸 美国',
+                shortName: '美国',
+                code: 'us',
+                color: '#1890ff',
+                holidays: {
+                    '2026-01-01': { name: '元旦', type: '法定假日' },
+                    '2026-01-19': { name: '马丁·路德·金日', type: '法定假日' },
+                    '2026-02-16': { name: '总统日', type: '法定假日' },
+                    '2026-04-03': { name: '耶稣受难日', type: '法定假日' },
+                    '2026-05-25': { name: '阵亡将士纪念日', type: '法定假日' },
+                    '2026-06-19': { name: '六月节', type: '法定假日' },
+                    '2026-07-03': { name: '独立日调休', type: '法定假日' },
+                    '2026-09-07': { name: '劳动节', type: '法定假日' },
+                    '2026-10-12': { name: '哥伦布日', type: '法定假日' },
+                    '2026-11-11': { name: '退伍军人节', type: '法定假日' },
+                    '2026-11-26': { name: '感恩节', type: '法定假日' },
+                    '2026-12-25': { name: '圣诞节', type: '法定假日' },
+                }
+            },
+            sg: {
+                name: '🇸🇬 新加坡',
+                shortName: '新加坡',
+                code: 'sg',
+                color: '#52c41a',
+                holidays: {
+                    '2026-01-01': { name: '新年', type: '法定假日' },
+                    '2026-02-17': { name: '农历新年初一', type: '法定假日' },
+                    '2026-02-18': { name: '农历新年初二', type: '法定假日' },
+                    '2026-03-21': { name: '开斋节', type: '法定假日' },
+                    '2026-04-03': { name: '耶稣受难日', type: '法定假日' },
+                    '2026-05-01': { name: '劳动节', type: '法定假日' },
+                    '2026-05-27': { name: '哈芝节', type: '法定假日' },
+                    '2026-05-31': { name: '卫塞节', type: '法定假日' },
+                    '2026-06-01': { name: '卫塞节补假', type: '法定假日' },
+                    '2026-08-09': { name: '国庆日', type: '法定假日' },
+                    '2026-08-10': { name: '国庆日补假', type: '法定假日' },
+                    '2026-11-08': { name: '屠妖节', type: '法定假日' },
+                    '2026-11-09': { name: '屠妖节补假', type: '法定假日' },
+                    '2026-12-25': { name: '圣诞节', type: '法定假日' },
+                }
+            },
+            hk: {
+                name: '🇭🇰 香港',
+                shortName: '香港',
+                code: 'hk',
+                color: '#722ed1',
+                holidays: {
+                    '2026-01-01': { name: '元旦', type: '法定假日' },
+                    '2026-02-17': { name: '农历年初一', type: '法定假日' },
+                    '2026-02-18': { name: '农历年初二', type: '法定假日' },
+                    '2026-02-19': { name: '农历年初三', type: '法定假日' },
+                    '2026-04-03': { name: '耶稣受难节', type: '法定假日' },
+                    '2026-04-04': { name: '耶稣受难节翌日', type: '法定假日' },
+                    '2026-04-06': { name: '清明节翌日', type: '法定假日' },
+                    '2026-04-07': { name: '复活节星期一翌日', type: '法定假日' },
+                    '2026-05-01': { name: '劳动节', type: '法定假日' },
+                    '2026-05-25': { name: '佛诞翌日（补假）', type: '法定假日' },
+                    '2026-06-19': { name: '端午节', type: '法定假日' },
+                    '2026-07-01': { name: '香港特别行政区成立纪念日', type: '法定假日' },
+                    '2026-09-26': { name: '中秋节翌日', type: '法定假日' },
+                    '2026-10-01': { name: '国庆日', type: '法定假日' },
+                    '2026-10-19': { name: '重阳节翌日（补假）', type: '法定假日' },
+                    '2026-12-25': { name: '圣诞节', type: '法定假日' },
+                    '2026-12-26': { name: '圣诞节后第一个周日', type: '法定假日' },
+                }
+            }
+        };
+        
+        let currentDate = new Date(2026, 2, 3); // 2026年3月3日
+        let today = new Date(2026, 2, 3);
+        let selectedDate = today;
+        
+        const weekdayNames = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+        const monthNames = ['1月', '2月', '3月', '4月', '5月', '6月', 
+                          '7月', '8月', '9月', '10月', '11月', '12月'];
+        
+        function formatDateKey(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+        
+        function isBankOpen(date, regionCode) {
+            const dayOfWeek = date.getDay();
+            const dateKey = formatDateKey(date);
+            const holidays = holidaysData[regionCode].holidays;
+            
+            if (dayOfWeek === 0 || dayOfWeek === 6) return false;
+            if (holidays[dateKey]) return false;
+            return true;
+        }
+        
+        function getHolidayInfo(date, regionCode) {
+            const dateKey = formatDateKey(date);
+            return holidaysData[regionCode].holidays[dateKey] || null;
+        }
+        
+        function updateRegionsStatus(date, isToday = false) {
+            const regionsStatusDiv = document.getElementById('regionsStatus');
+            const statusTitle = document.getElementById('statusTitle');
+            const todayDate = document.getElementById('todayDate');
+            
+            statusTitle.textContent = isToday ? '今日状态' : '选中日期';
+            todayDate.textContent = `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 ${weekdayNames[date.getDay()]}`;
+            
+            let html = '';
+            
+            for (const [code, data] of Object.entries(holidaysData)) {
+                const holidayInfo = getHolidayInfo(date, code);
+                const bankOpen = isBankOpen(date, code);
+                const dayOfWeek = date.getDay();
+                
+                const statusClass = bankOpen ? 'can' : 'cannot';
+                const bankStatus = bankOpen ? '营业中' : '休息中';
+                const transferStatus = bankOpen ? '可打款' : '不可打款';
+                
+                html += `
+                    <div class="region-status-card ${statusClass}">
+                        <div class="region-name">${data.name}</div>
+                        <div class="status-row">
+                            <div class="status-item">
+                                <div class="label">银行</div>
+                                <div class="value">${bankStatus}</div>
+                            </div>
+                            <div class="status-item">
+                                <div class="label">打款</div>
+                                <div class="value">${transferStatus}</div>
+                            </div>
+                        </div>
+                        ${holidayInfo ? `<div class="holiday-name">${holidayInfo.name}</div>` : ''}
+                    </div>
+                `;
+            }
+            
+            regionsStatusDiv.innerHTML = html;
+        }
+        
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            
+            document.getElementById('monthYear').textContent = `${year}年${monthNames[month]}`;
+            
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            const startingDay = firstDay.getDay();
+            const prevMonthLastDay = new Date(year, month, 0).getDate();
+            
+            const daysGrid = document.getElementById('daysGrid');
+            daysGrid.innerHTML = '';
+            
+            // 上月日期
+            for (let i = startingDay - 1; i >= 0; i--) {
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'day-cell other-month';
+                dayDiv.innerHTML = `<span class="day-number">${prevMonthLastDay - i}</span>`;
+                daysGrid.appendChild(dayDiv);
+            }
+            
+            // 当月日期
+            const monthHolidays = [];
+            
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(year, month, day);
+                const dateKey = formatDateKey(date);
+                const dayOfWeek = date.getDay();
+                const isToday = formatDateKey(date) === formatDateKey(today);
+                const isSelected = formatDateKey(date) === formatDateKey(selectedDate);
+                const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+                
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'day-cell';
+                
+                if (isToday) dayDiv.classList.add('today');
+                if (isSelected) dayDiv.classList.add('selected');
+                if (isWeekend) dayDiv.classList.add('weekend-day');
+                
+                // 统计三个地区的开放状态
+                let openCount = 0;
+                let closedCount = 0;
+                let holidayBadgesHtml = '<div class="holiday-badges">';
+                let hasHoliday = false;
+                
+                for (const [code, data] of Object.entries(holidaysData)) {
+                    const holidayInfo = getHolidayInfo(date, code);
+                    const bankOpen = isBankOpen(date, code);
+                    
+                    if (bankOpen) {
+                        openCount++;
+                    } else {
+                        closedCount++;
+                    }
+                    
+                    // 假日标记
+                    if (holidayInfo) {
+                        holidayBadgesHtml += `<div class="holiday-badge-mini">${data.shortName}·${holidayInfo.name}</div>`;
+                        hasHoliday = true;
+                        
+                        // 添加到本月假日列表
+                        const existingHoliday = monthHolidays.find(h => h.day === day && h.region === code && h.type === 'holiday');
+                        if (!existingHoliday) {
+                            monthHolidays.push({
+                                day,
+                                name: holidayInfo.name,
+                                region: code,
+                                regionName: data.name,
+                                type: 'holiday',
+                                weekday: weekdayNames[dayOfWeek],
+                                date
+                            });
+                        }
+                    }
+                    
+                    // 周末也添加到列表和显示
+                    if (isWeekend && !bankOpen) {
+                        const existingWeekend = monthHolidays.find(h => h.day === day && h.region === code && h.type === 'weekend');
+                        if (!existingWeekend) {
+                            monthHolidays.push({
+                                day,
+                                name: '周末',
+                                region: code,
+                                regionName: data.name,
+                                type: 'weekend',
+                                weekday: weekdayNames[dayOfWeek],
+                                date
+                            });
+                        }
+                    }
+                }
+                
+                // 如果是周末，显示周末标记
+                if (isWeekend) {
+                    holidayBadgesHtml += `<div class="holiday-badge-mini weekend">周末</div>`;
+                    hasHoliday = true;
+                }
+                
+                holidayBadgesHtml += '</div>';
+                
+                // 确定状态点颜色
+                let statusDotClass = 'all-open';
+                if (closedCount === 3) {
+                    statusDotClass = 'all-closed';
+                } else if (closedCount > 0) {
+                    statusDotClass = 'some-closed';
+                }
+                
+                let html = `<span class="day-number">${day}</span>`;
+                
+                if (hasHoliday) {
+                    html += holidayBadgesHtml;
+                }
+                
+                html += `<div class="status-dot-single ${statusDotClass}"></div>`;
+                
+                // 点击事件
+                dayDiv.onclick = function() {
+                    selectedDate = date;
+                    updateRegionsStatus(date, false);
+                    renderCalendar(); // 重新渲染以更新选中状态
+                };
+                
+                dayDiv.innerHTML = html;
+                daysGrid.appendChild(dayDiv);
+            }
+            
+            // 下月日期
+            const remainingCells = 42 - (startingDay + daysInMonth);
+            for (let day = 1; day <= remainingCells; day++) {
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'day-cell other-month';
+                dayDiv.innerHTML = `<span class="day-number">${day}</span>`;
+                daysGrid.appendChild(dayDiv);
+            }
+            
+            // 更新本月假日列表
+            updateMonthHolidays(monthHolidays);
+        }
+        
+        function updateMonthHolidays(holidays) {
+            const listDiv = document.getElementById('monthHolidays');
+            
+            // 按日期排序
+            holidays.sort((a, b) => a.day - b.day);
+            
+            if (holidays.length === 0) {
+                listDiv.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">本月无假日</p>';
+                return;
+            }
+            
+            listDiv.innerHTML = holidays.map(h => `
+                <div class="holiday-item">
+                    <div class="holiday-info">
+                        <span class="region-tag ${h.type === 'weekend' ? 'weekend' : h.region}">${h.regionName}</span>
+                        <span class="holiday-name-text">${h.name}</span>
+                    </div>
+                    <div class="holiday-date-text">
+                        <div class="holiday-date-main">${h.date.getMonth() + 1}月${h.day}日</div>
+                        <div class="holiday-weekday">${h.weekday}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function changeMonth(delta) {
+            currentDate.setMonth(currentDate.getMonth() + delta);
+            renderCalendar();
+        }
+        
+        // 初始化
+        updateRegionsStatus(today, true);
+        renderCalendar();
+    </script>
+</body>
+</html>
